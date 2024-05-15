@@ -19,24 +19,17 @@ endif
 
 all: build
 
-print: 
-	echo $(O_FILES)
-	echo $(C_FILES)
-
 rebuild: clean all
 
 build: $(O_FILES) src/main.o src/graph.o
 	$(CC) $(O_FILES) src/main.o src/graph.o -lm -o build/graph
 
-# build: data.o dynamic.o graph.o parsing.o polish.o calculate.o main.o
-#	 $(CC) data.o dynamic.o graph.o parsing.o polish.o calculate.o main.o -lm -o ../build/graph
-
 tests:
 	$(CC) $(CFLAGS) $(C_FILES) src/test.c $(TEST_FLAGS) -o test
-	./test
+	valgrind --leak-check=full -s --track-origins=yes ./test
 
 gcov_report:
-	$(CC) -fprofile-arcs -ftest-coverage test.c $(C_FILES) -o gcov_report $(TEST_FLAGS)
+	$(CC) -fprofile-arcs -ftest-coverage src/test.c $(C_FILES) -o gcov_report $(TEST_FLAGS)
 	./gcov_report
 	lcov -t "test" -o test.info -c -d .
 	genhtml -o report test.info
@@ -46,8 +39,5 @@ gcov_report:
 	$(CC) -c $(CFLAGSs) $< -o $@
 
 clean:
-	rm -f $(O_FILES) test build/graph
-
-#clean:
-#	rm -rf *.o *.a *.so *.gcda *.gcno *.info test gcov_report report
-
+	rm -f $(O_FILES) test build/graph *.gcda *.gcno *.info gcov_report
+	rm -rf report
